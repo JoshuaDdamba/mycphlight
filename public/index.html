@@ -1,11 +1,21 @@
 <html>
   <head>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/leaflet.css">
+    <link rel="stylesheet" href="./leaftletCluster/MarkerCluster.css">
+    <link rel="stylesheet" href="./leaftletCluster/MarkerCluster.Default.css">
+    <link rel="stylesheet" href="./leaftletCluster/MarkerCluster.Default.ie.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/leaflet.js"></script>
+    <script src="./leaftletCluster/leaflet.markercluster.js"></script>
     <title>mycph</title>
   </head>
 
   <style>
+    #page {
+      position:absolute;
+      top:0;left:0;
+      right:0;bottom:0;
+    }
+
     header{
       position:absolute;
       top:0;
@@ -20,6 +30,40 @@
       bottom:20px;
       overflow:auto;
     }
+    section #misc{
+      position:absolute;
+      top:0;
+      left:0; right:0;
+      height:200px;
+    }
+    section #misc #misc-left {
+      position:absolute;
+      left:0; top:0;
+      width:25%;
+      height:100%;
+    }
+
+    section #misc #misc-middle {
+      position:absolute;
+      left:25%; top:0;
+      width:50%;
+      height:100%;
+
+    }
+    section #misc #misc-right {
+      position:absolute;
+      right:0; top:0;
+      width:25%;
+      height:100%;
+    }
+
+    section #main {
+      position:absolute;
+      top:200px;
+      left:0; right:0;  
+      bottom:0;
+    }
+
     footer {
       position:absolute;
       bottom:0;
@@ -40,22 +84,36 @@
       margin:10px
     }
 
+    #misc-middle figure {
+      margin:0;
+      position:absolute;
+    }
+
   </style>
 
   <body>
 
-    <header>
-      <img class="logo" src="./images/logo.jpg" height="120" alt="logo" />
-      <div class="banner"></div>
-    </header>
+    <div id="page">
+      <header id="heading">
+        <img class="logo" src="./images/logo.jpg" height="120" alt="logo" />
+        <div class="banner"></div>
+      </header>
 
-    <section>
-      <div id="mycph"></div>
-    </section>
+      <section>
+        <div id="misc">
+          <div id="misc-left"></div>
+          <div id="misc-middle"></div>
+          <div id="misc-right"></div>
+        </div>
+        <div id="main">
+          <div id="main"></div>
+        </div>
+      </section>
 
-    <footer>
-      footer
-    </footer>
+      <footer id="footer">
+        footer
+      </footer>
+    </div>
     <script src="./index.js"></script>
   </body>
 </html>

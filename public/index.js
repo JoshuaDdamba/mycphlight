@@ -3,23 +3,15 @@ var access_token = "16384709.6ac06b4.49b97800d7fd4ac799a2c889f50f2587",
         access_token: access_token
     };
 
-var appSelector = 'mycph';
-var app = document.getElementById(appSelector);
+var $miscLeft   = document.getElementById('misc-left'); 
+var $miscMiddle = document.getElementById('misc-middle'); 
+var $miscRight  = document.getElementById('misc-right'); 
+var $main = document.getElementById('main');
+
+var slides = [];
+
+var clusterGroup = L.markerClusterGroup();
 var ajax = {};
-
-// CREATE A FORM
-var form = document.createElement('form');
-form.name = 'tagsearch';
-form.addEventListener('submit', handleFormSubmission);
-form.style.margin = "20px 10px";
-
-var left = document.createElement('div');
-left.style.position = "absolute";
-left.style.width = "400px";
-left.style.top = "0";
-left.style.bottom = "0";
-
-var content = document.createElement('div');
 
 // CREATE THE SEARCH FIELD
 var search = document.createElement('input');
@@ -33,42 +25,44 @@ var submit = document.createElement('input');
 submit.type = 'submit';
 submit.value = 'fetch tags';
 
-// ADD AN EVENT LISTENER ON SUBMIT SO THAT WE CAN DO SOMETHING WHEN CLICKED;
 
-// ADD ABOVE ELEMENTS INTO THE HEADING
-form.appendChild(search);
-form.appendChild(submit);
+var visTypes = {
+  "MapBox": {
+    constructor: function () {
+      var map = L.map($main).setView([55.707,12.529], 15);
+      L.tileLayer('https://api.tiles.mapbox.com/v4/{id}/{z}/{x}/{y}.png?access_token={access_token}', {
+        id: 'ddamba.ofm04n7i',
+        access_token: 'pk.eyJ1IjoiZGRhbWJhIiwiYSI6Ik9vX1VPdmcifQ.nEbSOXJ-DWVGhiEY771xvg',
+        attribution: '&copy; <a href="http://osm.org/copyright">OpenStreetMap</a> contributors'
+      }).addTo(map);
 
-// ADD THE FORM AND THE CONTENT INTO THE APP ELEMENT
-left.appendChild(form);
-app.appendChild(left);
-app.appendChild(content);
+    }
+  },
+  "Cow": {
+    constructor: function () {
+      mapContainer.appendChild(document.createTextNode("I am a Cow"));
+    }
+  }
+};
 
-var listContainer = document.createElement('div');
-listContainer.style.position = "absolute";
-listContainer.style.left     = "0";
-listContainer.style.top      = "40px";
-listContainer.style.bottom   = "0";
-listContainer.style.overflow = "auto";
+function getVisualization () {
 
-var featureList = document.createElement('div');
-featureList.style.position = "absolute";
-featureList.style.left     = "0";
-featureList.style.top      = "40px";
-featureList.style.bottom   = "0";
-featureList.style.overflow = "auto";
+  var xhr = new XMLHttpRequest();
+  var url = "/visualization";
+  xhr.open("GET", url);
+  xhr.send();
 
-var mapContainer = document.createElement('div');
-mapContainer.style.position = "absolute";
-mapContainer.style.right    = "0";
-mapContainer.style.left     = "400px";
-mapContainer.style.top      = "0px";
-mapContainer.style.bottom   = "0px";
+  xhr.onreadystatechange = function () {
+    if (xhr.readyState == 4 && xhr.status == 200) {
+      var visualization = JSON.parse(xhr.responseText);
+      console.log(visualization);
+      console.log(visTypes[visualization.type].constructor);
+      visTypes[visualization.type].constructor();
+    }
+  }
+}
 
-app.appendChild(listContainer);
-app.appendChild(featureList);
-app.appendChild(mapContainer);
-var map = L.map(mapContainer).setView([55.707,12.529], 15);
+var map = L.map($main).setView([55.707,12.529], 15);
 
 L.tileLayer('https://api.tiles.mapbox.com/v4/{id}/{z}/{x}/{y}.png?access_token={access_token}', {
     id: 'ddamba.ofm04n7i',
@@ -78,49 +72,8 @@ L.tileLayer('https://api.tiles.mapbox.com/v4/{id}/{z}/{x}/{y}.png?access_token={
 
 var featureMap = {};
 function mapRegions(data) {
-  console.log("list of features");
-  var geojsonLayer = L.geoJson(data, {
-    onEachFeature: function (feature, layer) {
-      console.log("layer", layer);
-      console.log("feature:", feature);
-      var featureContainer = document.createElement('div');
-
-      var label = document.createElement('label');
-
-      var checkbox = document.createElement('input');
-      checkbox.type = 'checkbox';
-      checkbox.checked = 'true';
-      checkbox.id = 'checkbox.'+feature.id;
-      checkbox.name = feature.id;
-
-      label.htmlFor = 'checkbox.'+feature.id;
-      label.innerHTML = feature.properties.navn;
-
-
-      checkbox.onchange = function () {
-        var featureName = this.id.substring(9);
-        if(this.checked) {
-          geojsonLayer.addLayer(featureMap[featureName]);
-        } else {
-          geojsonLayer.removeLayer(featureMap[featureName]);
-        }
-        
-      };
-
-      featureContainer.appendChild(checkbox);
-      featureContainer.appendChild(label);
-      //featureContainer.appendChild(document.createTextNode(feature.properties.navn));
-      //featureContainer.id = feature.id;
-      /*featureContainer.addEventListener('click', function (e) {
-        var layer = featureMap[this.id];
-        geojsonLayer.removeLayer(layer);
-      });*/
-      featureMap[feature.id] = layer;
-      featureList.appendChild(featureContainer);
-      layer.bindPopup(feature.properties.description);
-    }
-  })
-
+  console.log(data);
+  var geojsonLayer = L.geoJson(data.features[21]);
   geojsonLayer.addTo(map);
 }
 
@@ -130,8 +83,6 @@ function getRegions() {
   xhttp.onreadystatechange = function() {
     if (xhttp.readyState == 4 && xhttp.status == 200) {
       mapRegions(JSON.parse(xhttp.responseText));
-      //drawRegions(JSON.parse(xhttp.responseText));
-
     }
   };
   xhttp.open("GET", url, true);
@@ -163,11 +114,13 @@ function addToMap(media) {
     iconSize: [70, 70]
   });
 
-  console.log(media.images);
+  var marker = L.marker([media.location.latitude, media.location.longitude], {icon:icon});
+  marker.bindPopup('<img width="300px" src="'+media.images.standard_resolution.url+'"/>')
+  clusterGroup.addLayer(marker)
 
-  L.marker([media.location.latitude, media.location.longitude], {icon:icon}).addTo(map)
-    .bindPopup('<img width="300px" src="'+media.images.standard_resolution.url+'"/>')
+  map.addLayer(clusterGroup);
 }
+
 
 function addToList(media) {
 
@@ -178,32 +131,71 @@ function addToList(media) {
   link.appendChild(document.createTextNode(media.link));
   link.href = media.link;
 
-  listContainer.appendChild(img);
-  listContainer.appendChild(link);
-  listContainer.appendChild(document.createElement('br'));
+  $mainLeft.appendChild(img);
+  $mainLeft.appendChild(link);
+  $mainLeft.appendChild(document.createElement('br'));
+}
+
+function showSlide(n) {
+
+  if(slides.length > 0) {
+    var wrapper = document.createElement('div');
+    var img = document.createElement('img');
+    img.src = slides[n].images.standard_resolution.url;
+    var link = document.createElement('a');
+    link.href = slides[n].link;
+
+    link.appendChild(img);
+
+    $miscMiddle.innerHTML = '';
+    $miscMiddle.appendChild(link);
+    
+  }
+
+  setTimeout(function () {
+    showSlide(++n)
+  }, 3000);
+
+}
+
+
+function addToSlideShow(media) {
+
+  /*var figure = document.createElement('figure');
+  var img = document.createElement('img');
+  img.src = media.images.thumbnail.url;
+  figure.appendChild(img);
+  $miscMiddle.appendChild(figure);*/
+  slides.push(media);
+
 }
 
 function fetchGrams (tag, count, access_parameters) {
 
-  var url = 'https://api.instagram.com/v1/tags/' + tag + '/media/recent?callback=?&count=10&access_token=16384709.6ac06b4.49b97800d7fd4ac799a2c889f50f2587';
+
+  var url = 'https://api.instagram.com/v1/tags/'+tag+'/media/recent?callback=?&count='+count+'&access_token='+access_parameters.access_token;
+  // 16384709.6ac06b4.49b97800d7fd4ac799a2c889f50f2587';
   jsonp(url, function(response) {
  
     if(response.data.length) {
-      content.innerHTML = "";
       for(var i in response.data) {
+        addToSlideShow(response.data[i]);
         if(response.data[i].location !== null) {
           addToMap(response.data[i]);
         } else {
-          addToList(response.data[i]);
+          //addToList(response.data[i]);
         }
       }
+      showSlide(0);
     } else {
-      content.appendChild(document.createTextNode("no content was found"));
+      $main.innerHTML("No content found");
     }
   });
 }
 
-function handleFormSubmission(e) {
+fetchGrams('SpotNV', 2000, access_parameters);
+
+/*function handleFormSubmission(e) {
   
   var tag = this.tag.value;
   if (e.preventDefault) e.preventDefault();
@@ -214,5 +206,5 @@ function handleFormSubmission(e) {
   }
 
   return false;
-}
+}*/
 
