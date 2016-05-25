@@ -140,6 +140,7 @@ function addToList(media) {
 }
 // slide show
 function showSlide() {
+	console.log(slideN);
 
   if(slides.length > 0) {
 
