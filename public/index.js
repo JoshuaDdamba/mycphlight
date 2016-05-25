@@ -35,7 +35,9 @@ L.tileLayer('https://api.tiles.mapbox.com/v4/{id}/{z}/{x}/{y}.png?access_token={
 }).addTo(map);
 
 //********* create overlaping marker spiderfier Object ***********''
-var overlappics = new OverlappingMarkerSpiderfier(map);
+var overlappics = new OverlappingMarkerSpiderfier(map, {
+  keepSpiderfied: true
+});
 
 //**************************************************************************************************************************
 
